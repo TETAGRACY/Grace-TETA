@@ -1,0 +1,309 @@
+---
+title: "Class1"
+output: html_document
+date: "2025-10-16"
+---
+
+### NAME: Grace TETA
+### ID: 101378
+### CLASS 1
+-----------------------------------------------------
+
+### Vector: The foundational R data structure
+### Numeric
+```{r}
+ x <- c(0.5, 0.6)
+ age<-c(20,35,32,29)
+ summary(age)
+```
+```{r}
+ age<-c(35,24,18,24)
+ mean(age)
+```
+### Logical
+```{r}
+x <- c(TRUE, FALSE)
+ x <- c(T, F)
+
+```
+
+### Character
+```{r}
+x<-c("a","b","c")
+ class<-c("M","F","F","M")
+```
+### Integer
+```{r}
+x<-9:29
+```
+### Complex
+```{r}
+x<-c(1+0i,2+4i)
+```
+### Matrixandoperationwithinmatrices
+```{r}
+ x<-matrix(1:6,nrow=2,ncol=3)
+ x
+```
+```{r}
+ (y<-matrix(1:6,nrow=3,ncol=2))
+```
+```{r}
+ x%*%y
+```
+### List
+```{r}
+ x<-list(1,"a",TRUE,1+4i)
+ x
+```
+### Factor
+```{r}
+ x<-factor(c("yes","yes","no","yes","no"))
+```
+###  Create a vector with NAs in it
+```{r}
+x<-c(1,2,NA,10,3)
+# Return a logical vector indicating which elements are NA
+is.na(x)
+
+```
+```{r}
+x<-c(1,2,4,"NA",5)
+ bad<-is.na(x)
+ print(bad)
+```
+```{r}
+x[!bad]
+```
+###  What if there are multiple R objects and you want to take the subset with no missing values in any of those objects?
+```{r}
+x<-c(1,2,NA,4,NA,5)
+ y<-c("a","b",NA,"d",NA,"f")
+ good<-complete.cases(x,y)
+  good
+```
+###  Coercion
+```{r}
+ sum(c(TRUE,TRUE,FALSE,FALSE,FALSE))
+```
+### Create data
+### ###Let’s create a data frame
+```{r}
+ studentID<-c(1,2,3,4,5)
+ math_score<-c(12,17,10,9,NA)
+ gender<-c("M","F","M","M","F")
+ it_score<-c(13,18,11,10,19)
+ scoredata<-data.frame(studentID,gender,math_score,it_score)
+ scoredata
+
+```
+###  Create data from keyboard
+### Steps1.Create data frame (ormatrix) with variable names2.Invoke the text editor in the data objected created at first step
+```{r}
+data_class2<-data.frame(height=numeric(0),weight=numeric(0),bmi=numeric
+ (0))
+ data_class2<-edit(data_class2)
+```
+
+###  Data Importation
+### HW1:Import data from Statistical package and from Database management systems
+```{r}
+bmi_data <- read.csv("C:\\Users\\USER\\Downloads\\bmi.csv")
+variable.names(bmi_data)
+```
+```{r}
+ head(bmi_data)
+```
+```{r}
+tail(bmi_data)
+```
+```{r}
+bmi_data[10:20,]
+```
+```{r}
+ summary(bmi_data$WEIGHT)
+```
+```{r}
+length(bmi_data$WEIGHT)
+```
+```{r}
+ bmi_data[,-1]
+```
+###  Incase you want to use dataset built in R
+```{r}
+data()#listofdatasetscurrentlyavailable
+ data("airquality")
+ variable.names(airquality)
+```
+```{r}
+ str(airquality)
+```
+### Exploration data analysis
+### Examine numerical variable using common summary
+
+```{r}
+summary(bmi_data)
+
+```
+```{r}
+ str(bmi_data)
+```
+###  Summary Statistics
+```{r}
+ summary(bmi_data)
+```
+```{r}
+ apply(bmi_data,2,mean)
+```
+```{r}
+bmi_data$Height <- as.numeric(as.character(bmi_data$Height))
+bmi_data$Weight <- as.numeric(as.character(bmi_data$Weight))
+apply(bmi_data,2,sd)
+```
+```{r}
+ c(mean(bmi_data$Height),sd(bmi_data$Height))
+```
+```{r}
+ c(mean(bmi_data$Weight),sd(bmi_data$Weight))
+```
+```{r}
+c(Mean=mean(bmi_data$Height),SD=sd(bmi_data$Height))
+```
+```{r}
+ c(Mean=mean(bmi_data$Weight),SD=sd(bmi_data$Weight))
+```
+### Variation and covariation using both numerical and graphs
+### Relationship between a categorical and a continuous variable
+```{r}
+data("iris")
+ head(iris)
+```
+```{r}
+mean(iris$Petal.Length)
+```
+```{r}
+ mean(iris$Petal.Length[iris$Species=="setosa"])
+```
+```{r}
+ mean(iris$Petal.Length[iris$Species=="versicolor"])
+```
+```{r}
+ mean(iris$Petal.Length[iris$Species=="virginica"])
+```
+### By shortcut
+```{r}
+by(iris$Petal.Length,iris$Species,mean)
+```
+```{r}
+by(iris$Petal.Length,iris$Species,sd)
+```
+```{r}
+by(iris$Petal.Length,iris$Species,summary)
+```
+###  Visualize the differences in continuous variables between categories using Box-and whisker plot
+```{r}
+boxplot(iris$Sepal.Length~iris$Species,data=iris, main="Comparison")
+```
+###  Relationship between two categorical variables
+```{r}
+ ucba<-data.frame(UCBAdmissions)
+ head(ucba)
+```
+```{r}
+cross<-xtabs(Freq~Gender+Admit,data=ucba)
+ (cross<-xtabs(Freq~Gender+Admit,data=ucba))
+```
+### Is there gender bias in UCB graduate admission process?
+```{r}
+ prop.table(cross,2)
+```
+### Simpson’sparadox
+```{r}
+ cross2<-xtabs(Freq~Gender+Admit,data=ucba[ucba$Dept=="A",])
+ prop.table(cross2,1)
+```
+### BarChart
+```{r}
+ dat<-read.table(text="ProdAProdBProdCProdD
+ 1110506070
+ 2120508065",header=TRUE)
+ barplot(as.matrix(dat),beside=FALSE,col=c("Red","green"))
+
+```
+```{r}
+ dat <- read.table(text = "A B C D E F G
+ 1 10 80 30 90 70 60 90
+ 2 20 50 70 50 40 10 40
+ 3 60 80 80 60 60 30 160
+ 4 20 40 70 80 20 10 70", header = TRUE)
+ barplot(as.matrix(dat))
+
+```
+### Scatter Plot
+```{r}
+plot(Weight~Height,data=bmi_data)
+```
+```{r}
+plot(bmi_data$Height,bmi_data$Weight)
+```
+```{r}
+plot(bmi_data[,1],bmi_data[,2])
+```
+```{r}
+cor(bmi_data$Height,bmi_data$Weight)
+```
+###  Linear Models
+```{r}
+ plot(Weight~Height,data=bmi_data)
+ abline(lm(Weight~Height,data=bmi_data)$coefficient)
+```
+```{r}
+ data_lm<-lm(Weight~Height,data=bmi_data)
+ summary(data_lm)
+```
+```{r}
+hist(bmi_data$Height)
+```
+```{r}
+hist(bmi_data$Weight,col = "blue")
+
+```
+### Linear with other line
+```{r}
+ plot(Weight~Height,data=bmi_data)
+ abline(lm(Weight~Height,data=bmi_data)$coefficient)
+ lines(lowess(bmi_data$Height,bmi_data$Weight),col="blue")
+
+```
+```{r}
+cor(bmi_data$Height,bmi_data$Weight)
+```
+```{r}
+model1<-lm(Weight~Height,data=bmi_data)
+```
+### Data management
+### Create another Variable
+```{r}
+ attach(bmi_data)
+(BodyComposition<-Weight/(Height/100)^2)
+```
+```{r}
+ (BodyComposition<-round(Weight/(Height/100)^2,digit=2))
+```
+```{r}
+ head(cbind(bmi_data,BodyComposition),n=5)
+```
+```{r}
+new_data_class<-cbind(bmi_data,BodyComposition)
+ tail(cbind(bmi_data,BodyComposition),n=10)
+```
+###  Summary of Body Composition
+```{r}
+ summary(BodyComposition)
+```
+```{r}
+ stem(BodyComposition,scale=2)
+```
+
+
+
