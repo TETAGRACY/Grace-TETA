@@ -4,9 +4,9 @@ output: html_document
 date: "2025-10-16"
 ---
 
-### NAME: Grace TETA
-### ID: 101378
-### CLASS 1
+NAME: Grace TETA
+ID: 101378
+CLASS 1
 -----------------------------------------------------
 
 ### Vector: The foundational R data structure
