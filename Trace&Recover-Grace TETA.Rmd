@@ -1,0 +1,49 @@
+---
+title: "trial"
+output: html_document
+date: "2025-10-12"
+---
+
+### title: "Class Assignment"
+### Names: "Grace TETA"
+### date: "2025-10-12"
+### ID: "101378"
+
+### Trace ()
+Trace function is useful if you need to track down an error which occurs in a base function. The trace() function accepts the name of the function to be traced, a function or unevaluated evaluated expression to execute,and the line number at which to execute it. Line numbers inside a function are revealed by calling list(body(function))
+
+```{r}
+my_function <- function(x, y) {
+      result <- x + y
+      return(result)
+    }
+
+    # Trace 'my_function' to insert a browser call at the second line
+    trace(my_function, browser, at = 2)
+
+    my_function(5, 3) # This will open the browser at the specified line
+
+    # Untrace the function when done
+    untrace(my_function)
+```
+### Recover()
+The recover() statement is used as an error handler. R allows you to choose which function browser to enter and prints the entire call stack in recover(). After then, the debugging session begins at the chosen location.
+
+```{r error=TRUE}
+# Calling recover
+options(error = recover)
+
+# Function 1
+function_1 <- function(a){
+ a + 5
+}
+
+# Function 2
+function_2 <- function(b) {
+ function_1(b)
+}
+
+# Calling function
+function_2("s")
+```
+

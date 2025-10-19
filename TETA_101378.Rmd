@@ -1,0 +1,346 @@
+---
+title: "MID-TERM"
+author: "Grace TETA"
+date: "r Sys.Date()"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    fig_crop: false
+  html_document:
+    df_print: paged
+geometry: margin=1in
+---
+
+### Mid_Term Project
+### NAME: Grace TETA
+### ID:101378
+
+### 1. Load datasets
+
+```{r}
+world_pop <- read.csv("C:\\Users\\USER\\Downloads\\world_population.csv")
+co2_emissions <- read.csv("C:\\Users\\USER\\Downloads\\CO2_emission.csv")
+library(countrycode)
+
+
+```
+
+### 2.Exploratory Data Analysis (EDA)
+### (a) View structure and shape
+```{r}
+# View variable names
+names(world_pop)
+```
+
+```{r}
+# Top 5 rows
+head(world_pop, 5)
+
+```
+
+```{r}
+# Bottom 10 rows
+tail(world_pop, 10)
+
+```
+
+```{r}
+# Data type and structure
+str(world_pop)
+
+```
+
+```{r}
+# Dataset shape (rows and columns)
+dim(world_pop)
+
+```
+
+### (b) Handle duplicates and missing values
+
+```{r}
+# Count duplicate rows
+any(duplicated(world_pop))
+```
+```{r}
+# Count missing values
+colSums(is.na(world_pop))
+```
+### (c) Outlier detection
+
+```{r}
+# Boxplot for quantitative variables
+# Select only numeric columns
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+world_pop_numeric <- world_pop %>% select(where(is.numeric))
+
+# Convert to long format using pivot_longer()
+world_long <- world_pop_numeric %>%
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
+
+# Create boxplots for all quantitative variables
+ggplot(world_long, aes(x = variable, y = value, fill = variable)) +
+  geom_boxplot(outlier.colour = "blue", outlier.shape = 16) +
+  labs(title = "Outliers Boxplot of Quantitative Variables",
+       x = "Variables", y = "Values") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+```{r}
+cap_outliers <- function(x) {
+  if (is.numeric(x)) {
+    Q1 <- quantile(x, 0.25, na.rm = TRUE)
+    Q3 <- quantile(x, 0.75, na.rm = TRUE)
+    IQR <- Q3 - Q1
+    lower <- Q1 - 1.5 * IQR
+    upper <- Q3 + 1.5 * IQR
+    x[x < lower] <- lower
+    x[x > upper] <- upper
+  }
+  return(x)
+}
+
+# Apply capping to numeric columns
+world_pop_capped <- world_pop %>%
+  mutate(across(where(is.numeric), cap_outliers))
+
+```
+###(e) Checking if the outliers have handled
+
+```{r}
+numeric_cols <- world_pop_capped %>% select(where(is.numeric))
+
+#  Convert to long format for ggplot
+world_long_capped <- numeric_cols %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Value")
+
+#  Re-plot boxplots
+ggplot(world_long_capped, aes(x = Variable, y = Value, fill = Variable)) +
+  geom_boxplot(outlier.colour = "green", outlier.shape = 16) +
+  labs(title = "Boxplots: After Outlier Capping",
+       x = "Variables",
+       y = "Values") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+### 4.3 Generating new Variable by using World Population Dataset
+```{r}
+# Step 2: Define time period (years from 2022 to 2030)
+t <- 2030 - 2022  # = 8 years
+
+# Step 3: Convert growth rate to decimal form (if given in %)
+world_pop$Growth_Rate_Decimal <- world_pop$Growth.Rate / 100
+
+# Step 4: Apply the population projection formula: Nt = P * e^(r*t)
+world_pop$Population_2030 <- world_pop$X2022.Population * exp(world_pop$Growth_Rate_Decimal * t)
+
+# Step 5: View the projected population
+head(world_pop[, c("Country.Territory", "X2022.Population", "Population_2030")])
+
+
+
+```
+
+### 4.4 Value extraction and plot
+```{r}
+# Top 10 countries by 2022 population
+top10_2022 <- world_pop_capped %>%
+  arrange(desc(X2022.Population)) %>%
+  slice(1:10)
+
+top10_2022[, c("Country.Territory", "X2022.Population")]
+```
+### 1. Use an appropriate graph to present top 10 most populous counties and their population number during 2022
+```{r}
+top10_2022[, c("Country.Territory", "X2022.Population")]
+
+ggplot(top10_2022, aes(x = reorder(Country.Territory, X2022.Population), y = X2022.Population, fill = Country.Territory)) +
+  geom_col(show.legend = FALSE) +
+  labs(title = "Top 10 Most Populous Countries in 2022",
+       x = "Country", y = "Population (2022)") +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels
+  )
+```
+### 2. Show the trend in their population number since 1990-2022 by using appropriate graph
+```{r}
+years <- c("X1970.Population", "X1980.Population", "X1990.Population", 
+            "X2000.Population", "X2010.Population", "X2015.Population", 
+            "X2020.Population", "X2022.Population")
+
+# Select only top 10 countries and the available population columns
+pop_trend_top10 <- world_pop %>%
+  filter(Country.Territory %in% top10_2022$Country.Territory) %>%
+  select(Country.Territory, all_of(years)) %>%
+  pivot_longer(cols = -Country.Territory, names_to = "Year", values_to = "Population") %>%
+  mutate(Year = as.numeric(gsub("X|\\.Population", "", Year)))  # Clean the year names
+
+# Plot population trend for top 10 countries
+ggplot(pop_trend_top10, aes(x = Year, y = Population, color = Country.Territory, group = Country.Territory)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 2) +
+  labs(title = "Population Trend (1970–2022) — Top 10 Most Populous Countries",
+       x = "Year", y = "Population") +
+  theme_minimal() +
+  theme(legend.title = element_blank())
+
+```
+```{r}
+# Convert to long format, find top 10 emitters, and plot emission trends
+co2_long <- co2_emissions %>%
+  pivot_longer(cols = starts_with("X"), names_to = "Year", values_to = "CO2_Emissions") %>%
+  mutate(Year = as.numeric(gsub("X", "", Year))) %>%
+  filter(Year >= 1990 & Year <= 2019)
+
+top10_emitters <- co2_long %>%
+  group_by(Country.Name) %>%
+  summarise(Total_Emissions = sum(CO2_Emissions, na.rm = TRUE)) %>%
+  arrange(desc(Total_Emissions)) %>%
+  slice(1:10)
+
+co2_top10 <- co2_long %>%
+  filter(Country.Name %in% top10_emitters$Country.Name)
+
+ggplot(co2_top10, aes(x = Year, y = CO2_Emissions, color = Country.Name)) +
+  geom_line(size = 1.2) +
+  labs(title = "CO₂ Emission Trends (1990–2019) for Top 10 Emitting Countries",
+       x = "Year", y = "CO₂ Emissions") +
+  theme_minimal()
+```
+
+###4.5 Correlation Analysis
+```{r}
+# Select numeric columns
+corr_data <- world_pop_capped %>%
+  select(Area..km.., Density..per.km.., Growth.Rate, World.Population.Percentage) %>%
+  mutate(across(everything(), as.numeric))
+
+# Compute correlation matrix
+corr_matrix <- cor(corr_data, use = "pairwise.complete.obs")
+
+# Print rounded correlation values
+print(round(corr_matrix, 3))
+
+# Convert correlation matrix to long format using pivot_longer
+corr_long <- as.data.frame(corr_matrix) %>%
+  tibble::rownames_to_column(var = "Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "value")
+```
+```{r}
+# Plot heatmap
+ggplot(corr_long, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0) +
+  labs(title = "Correlation Heatmap", x = "", y = "", fill = "Corr") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+### 2. Merge the World Population Dataset and CO2 Emissions Around the World on country name . After extracting, 2022 population and 2019 CO2 emissions.Using an appropriate methods(visualization, statistical analysis of numerical values,regression,...), determine the pattern of relationships between population number and CO2 emissions.
+
+```{r}
+# Select columns from population dataset
+pop_2022 <- world_pop %>%
+  select(Country = Country.Territory, Population_2022 = X2022.Population)
+
+# Select columns from CO2 dataset
+co2_2019 <- co2_emissions %>%
+  select(Country = Country.Name, CO2_2019 = X2019)
+
+# Merge and analyze
+merged_data <- inner_join(pop_2022, co2_2019, by = "Country")
+
+# Quick correlation
+cor(merged_data$Population_2022, merged_data$CO2_2019, use = "complete.obs")
+
+# Scatter plot
+library(ggplot2)
+
+ggplot(merged_data, aes(x = Population_2022, y = CO2_2019)) +
+  geom_point(color = "green", alpha = 0.7) +
+  geom_smooth(method = "lm", color = "blue") +
+  scale_x_log10(labels = scales::comma) +
+  scale_y_log10(labels = scales::comma) +
+  labs(
+    title = "Relationship between 2022 Population and 2019 CO2 Emissions",
+    x = "Population (log scale)",
+    y = "CO2 Emissions (log scale)"
+  ) +
+  theme_minimal()
+```
+```{r}
+world_pop <- as.data.frame(world_pop)
+co2 <- as.data.frame(co2)
+```
+### 4.6 Comparing CO2 Emissions in continents
+### Use the merged datased 2. Sum 2019 CO2 emissions by continents. Use a graphical method to compare the CO2 emission of the continents. Based on the graph generated, answer the following:
+
+```{r}
+# Add a continent column to the merged data
+merged_data <- merged_data %>%
+  mutate(Continent = countrycode(Country, "country.name", "continent"))
+
+# Sum CO₂ emissions by continent
+continent_co2 <- merged_data %>%
+  group_by(Continent) %>%
+  summarise(Total_CO2_2019 = sum(CO2_2019, na.rm = TRUE)) %>%
+  arrange(desc(Total_CO2_2019))
+print(continent_co2)
+
+# Visualize — compare continents
+ggplot(continent_co2, aes(x = reorder(Continent, -Total_CO2_2019), 
+                          y = Total_CO2_2019, fill = Continent)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "2019 CO₂ Emissions by Continent",
+    x = "Continent",
+    y = "Total CO₂ Emissions (Million Metric Tons)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  scale_y_continuous(labels = scales::comma)
+
+
+
+```
+### 1. What is the first continent with high 2019 CO2 emission?
+
+```{r}
+top_continent <- continent_co2$Continent[1]
+cat("The first continent with the highest 2019 CO₂ emissions is:", top_continent, "\n")
+```
+### 2. What is the third continent in terms of emitting CO2? What is their total emission(metric tons per capita)?
+```{r}
+# Compute total CO2 and total population per continent
+continent_summary <- merged_data %>%
+  group_by(Continent) %>%
+  summarise(
+    Total_CO2_2019 = sum(CO2_2019, na.rm = TRUE),
+    Total_Pop_2022 = sum(Population_2022, na.rm = TRUE)
+  ) %>%
+  mutate(CO2_per_capita = Total_CO2_2019 / Total_Pop_2022) %>%
+  arrange(desc(Total_CO2_2019))
+
+# View results
+print(continent_summary)
+```
+```{r}
+# Identify the third continent and its CO2 per capita
+third_continent <- continent_summary[3, ]
+cat("The third continent in 2019 CO₂ emissions is:", third_continent$Continent, "\n")
+cat("Its total emission per capita (metric tons per person) is:", round(third_continent$CO2_per_capita, 3), "\n")
+```
+### 3. What is the last continent in terms of emitting CO2? What their total emission(metric tons per capita)?
+```{r}
+# Identify the last (lowest) continent
+last_continent <- continent_summary[nrow(continent_summary), ]
+cat("The last continent in 2019 CO₂ emissions is:", last_continent$Continent, "\n")
+cat("Its total emission per capita (metric tons per person) is:", round(last_continent$CO2_per_capita, 3), "\n")
+
+```
+

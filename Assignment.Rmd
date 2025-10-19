@@ -1,0 +1,27 @@
+---
+title: "Exercise"
+output: html_document
+date: "2025-09-16"
+---
+
+
+```{r}
+data_class<-read.csv("C:\\Users\\USER\\Downloads\\R\\age_gender.csv")
+head(data_class)
+tail(data_class)
+```
+```{r}
+install.packages("DBI")
+install.packages("RSQLite")
+
+library(DBI)
+library(RSQLite)
+
+dbConnect(RSQLite::SQLite(),"C:\\Users\\USER\\Downloads\\restaurant_orders.sqlite")
+
+
+```
+```{r}
+data("restaurant_orders")
+```
+
